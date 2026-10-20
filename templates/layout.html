@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Online Feedback Collector with Admin Dashboard - A full-stack web application built with Flask and SQLite.">
+    <title>{% block title %}Online Feedback Collector{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons for stars and badges -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar-wrapper">
+        <nav class="navbar container">
+            <a href="{{ url_for('index') }}" class="nav-brand">
+                <span class="brand-icon"><i class="fa-solid fa-comments"></i></span>
+                <span class="brand-name">Feedback<span class="brand-accent">Hub</span></span>
+            </a>
+
+            <div class="nav-links">
+                {% if request.path != '/admin-dashboard' %}
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                    <i class="fa-solid fa-pen-to-square"></i> Submit Feedback
+                </a>
+                {% endif %}
+                {% if session.get('admin_logged_in') %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link nav-link-admin {% if request.path == '/admin-dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Admin Dashboard
+                </a>
+                <a href="{{ url_for('admin_logout') }}" class="nav-link nav-link-logout" title="Sign out from Admin Panel">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content container">
+        <!-- Flash Messages Display -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages-container" id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-alert flash-{{ category }} animate-fade-in" role="alert">
+                            <div class="flash-icon">
+                                {% if category == 'success' %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% elif category == 'error' %}
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-info"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flash-text">{{ message }}</div>
+                            <button type="button" class="flash-close-btn" onclick="this.parentElement.remove()" aria-label="Close notification">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Custom Content fallback or standard block -->
+        {% if custom_content %}
+            {{ custom_content | safe }}
+        {% else %}
+            {% block content %}{% endblock %}
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>&copy; 2026 <strong>Online Feedback Collector &amp; Admin Dashboard</strong>. All rights reserved.</p>
+            <p class="footer-subtext">Engineered with Python Flask, SQLite, Vanilla CSS &amp; Chart.js</p>
+        </div>
+    </footer>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts_extra %}{% endblock %}
+</body>
+</html>

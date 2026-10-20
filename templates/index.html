@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+
+{% block title %}Submit Your Feedback - FeedbackHub{% endblock %}
+
+{% block content %}
+<section class="feedback-hero">
+    <div class="hero-badge">
+        <i class="fa-solid fa-sparkles"></i> We Value Your Voice
+    </div>
+    <h1 class="hero-title">Share Your Thoughts With Us</h1>
+    <p class="hero-subtitle">
+        Your honest feedback helps us enhance our services, improve user experience, and build better solutions.
+    </p>
+</section>
+
+<div class="form-wrapper">
+    <div class="card feedback-card">
+        <div class="card-header">
+            <div class="card-header-icon">
+                <i class="fa-solid fa-comment-dots"></i>
+            </div>
+            <div>
+                <h2 class="card-title">Feedback Form</h2>
+                <p class="card-description">Please fill in the details below. All fields are required.</p>
+            </div>
+        </div>
+
+        <form id="feedbackForm" action="{{ url_for('submit_feedback') }}" method="POST" novalidate>
+            <!-- Full Name Field -->
+            <div class="form-group">
+                <label for="name" class="form-label">
+                    <i class="fa-solid fa-user"></i> Full Name <span class="required">*</span>
+                </label>
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        class="form-input" 
+                        placeholder="e.g. Alex Johnson"
+                        required 
+                        minlength="2"
+                        maxlength="100"
+                        autocomplete="name"
+                    >
+                </div>
+                <small class="field-error" id="nameError"></small>
+            </div>
+
+            <!-- Email Address Field -->
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fa-solid fa-envelope"></i> Email Address <span class="required">*</span>
+                </label>
+                <div class="input-wrapper">
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="e.g. alex.johnson@example.com" 
+                        required
+                        maxlength="120"
+                        autocomplete="email"
+                    >
+                </div>
+                <small class="field-error" id="emailError"></small>
+            </div>
+
+            <!-- Star Rating Field (1 to 5) -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fa-solid fa-star"></i> Overall Experience Rating <span class="required">*</span>
+                </label>
+                
+                <div class="rating-container" id="starRatingContainer">
+                    <div class="star-rating" role="radiogroup" aria-label="Rating out of 5 stars">
+                        <!-- Hidden radio buttons for proper accessibility & standard form POST fallback -->
+                        <input type="radio" id="star5" name="rating" value="5" class="sr-only">
+                        <label for="star5" class="star-label" data-value="5" title="5 Stars - Excellent">
+                            <i class="fa-solid fa-star"></i>
+                        </label>
+
+                        <input type="radio" id="star4" name="rating" value="4" class="sr-only">
+                        <label for="star4" class="star-label" data-value="4" title="4 Stars - Very Good">
+                            <i class="fa-solid fa-star"></i>
+                        </label>
+
+                        <input type="radio" id="star3" name="rating" value="3" class="sr-only">
+                        <label for="star3" class="star-label" data-value="3" title="3 Stars - Good">
+                            <i class="fa-solid fa-star"></i>
+                        </label>
+
+                        <input type="radio" id="star2" name="rating" value="2" class="sr-only">
+                        <label for="star2" class="star-label" data-value="2" title="2 Stars - Fair">
+                            <i class="fa-solid fa-star"></i>
+                        </label>
+
+                        <input type="radio" id="star1" name="rating" value="1" class="sr-only">
+                        <label for="star1" class="star-label" data-value="1" title="1 Star - Poor">
+                            <i class="fa-solid fa-star"></i>
+                        </label>
+                    </div>
+
+                    <!-- Dynamic rating description text -->
+                    <div class="rating-text" id="ratingDescriptor">
+                        <span class="rating-hint">Select a rating from 1 to 5</span>
+                    </div>
+                </div>
+                <small class="field-error" id="ratingError"></small>
+            </div>
+
+            <!-- Comments / Suggestions Field -->
+            <div class="form-group">
+                <label for="comments" class="form-label">
+                    <i class="fa-solid fa-message"></i> Detailed Feedback / Comments <span class="required">*</span>
+                </label>
+                <div class="input-wrapper">
+                    <textarea 
+                        id="comments" 
+                        name="comments" 
+                        class="form-textarea" 
+                        rows="4" 
+                        placeholder="Tell us what you loved or how we can improve..."
+                        required
+                        minlength="5"
+                        maxlength="1000"
+                    ></textarea>
+                </div>
+                <div class="textarea-footer">
+                    <small class="field-error" id="commentsError"></small>
+                    <small class="char-counter" id="charCounter">0 / 1000 characters</small>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+                    <span class="btn-text">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Feedback
+                    </span>
+                    <span class="btn-spinner" style="display: none;">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...
+                    </span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Public Notice Footer -->
+        <div class="card-footer-info">
+            <i class="fa-solid fa-lock text-muted"></i>
+            <span>Your feedback is submitted securely and reviewed by our quality assurance team.</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard - Feedback Analytics{% endblock %}
+
+{% block head_extra %}
+<!-- Chart.js CDN for rating distribution visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header-wrapper">
+    <div class="dashboard-title-group">
+        <div class="admin-badge">
+            <i class="fa-solid fa-gauge-high"></i> Administrative Portal &bull; <span class="admin-user-tag">Logged in as <strong>{{ session.get('admin_user', 'admin') }}</strong></span>
+        </div>
+        <h1 class="dashboard-title">Feedback Analytics &amp; Responses</h1>
+        <p class="dashboard-subtitle">Monitor real-time customer sentiment, satisfaction metrics, and submitted feedback.</p>
+    </div>
+
+    <div class="dashboard-actions">
+        <a href="{{ url_for('export_csv') }}" class="btn btn-success" title="Download all feedback as CSV">
+            <i class="fa-solid fa-file-csv"></i> Export Data as CSV
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline" title="View Public Feedback Form">
+            <i class="fa-solid fa-pen-to-square"></i> Public Form
+        </a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-danger-outline" title="Sign out of Admin Dashboard">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</div>
+
+<!-- Key Metric Statistic Cards -->
+<div class="metrics-grid">
+    <!-- Card 1: Total Submissions -->
+    <div class="metric-card">
+        <div class="metric-icon-box bg-indigo-soft">
+            <i class="fa-solid fa-inbox text-indigo"></i>
+        </div>
+        <div class="metric-details">
+            <span class="metric-label">Total Submissions</span>
+            <h2 class="metric-value">{{ total_feedback }}</h2>
+            <span class="metric-note">Lifetime collected reviews</span>
+        </div>
+    </div>
+
+    <!-- Card 2: Average Rating -->
+    <div class="metric-card">
+        <div class="metric-icon-box bg-amber-soft">
+            <i class="fa-solid fa-star text-amber"></i>
+        </div>
+        <div class="metric-details">
+            <span class="metric-label">Average Rating</span>
+            <div class="metric-value-row">
+                <h2 class="metric-value">{{ "%.1f"|format(avg_rating) }}</h2>
+                <span class="metric-scale">/ 5.0</span>
+            </div>
+            <div class="metric-stars">
+                {% for i in range(1, 6) %}
+                    {% if avg_rating >= i %}
+                        <i class="fa-solid fa-star star-filled"></i>
+                    {% elif avg_rating >= (i - 0.5) %}
+                        <i class="fa-solid fa-star-half-stroke star-filled"></i>
+                    {% else %}
+                        <i class="fa-regular fa-star star-empty"></i>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Satisfaction Rate -->
+    <div class="metric-card">
+        <div class="metric-icon-box bg-emerald-soft">
+            <i class="fa-solid fa-face-smile text-emerald"></i>
+        </div>
+        <div class="metric-details">
+            <span class="metric-label">Satisfaction Rate</span>
+            <h2 class="metric-value">{{ satisfaction_rate }}%</h2>
+            <span class="metric-note">Rated 4 or 5 stars</span>
+        </div>
+    </div>
+
+    <!-- Card 4: 5-Star Reviews -->
+    <div class="metric-card">
+        <div class="metric-icon-box bg-cyan-soft">
+            <i class="fa-solid fa-award text-cyan"></i>
+        </div>
+        <div class="metric-details">
+            <span class="metric-label">5-Star Reviews</span>
+            <h2 class="metric-value">{{ rating_counts.get(5, 0) }}</h2>
+            <span class="metric-note">Top tier ratings received</span>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics & Chart Section -->
+<div class="analytics-row">
+    <!-- Chart Container -->
+    <div class="card chart-card">
+        <div class="card-header border-bottom">
+            <div>
+                <h3 class="card-title">
+                    <i class="fa-solid fa-chart-column text-indigo"></i> Rating Statistics
+                </h3>
+                <p class="card-description">Frequency distribution across ratings (1 to 5 Stars)</p>
+            </div>
+            <div class="chart-toggle-group">
+                <button type="button" class="btn-toggle active" id="btnBarChart" onclick="switchChartType('bar')">Bar Chart</button>
+                <button type="button" class="btn-toggle" id="btnPieChart" onclick="switchChartType('doughnut')">Donut Chart</button>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="ratingChart" aria-label="Rating Distribution Chart" role="img"></canvas>
+        </div>
+    </div>
+
+    <!-- Rating Distribution Progress Breakdown -->
+    <div class="card breakdown-card">
+        <div class="card-header border-bottom">
+            <div>
+                <h3 class="card-title">
+                    <i class="fa-solid fa-list-check text-indigo"></i> Rating Breakdown
+                </h3>
+                <p class="card-description">Detailed breakdown by star tier</p>
+            </div>
+        </div>
+        <div class="breakdown-list">
+            {% for star in [5, 4, 3, 2, 1] %}
+                {% set count = rating_counts.get(star, 0) %}
+                {% set pct = (count / total_feedback * 100) if total_feedback > 0 else 0 %}
+                <div class="breakdown-item">
+                    <div class="breakdown-label">
+                        <span>{{ star }} <i class="fa-solid fa-star text-amber"></i></span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill star-bar-{{ star }}" style="width: {{ pct }}%;"></div>
+                    </div>
+                    <div class="breakdown-stats">
+                        <span class="breakdown-count">{{ count }}</span>
+                        <span class="breakdown-pct">({{ "%.0f"|format(pct) }}%)</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Table Section -->
+<div class="card table-card">
+    <div class="card-header border-bottom table-controls-header">
+        <div>
+            <h3 class="card-title">
+                <i class="fa-solid fa-table-list text-indigo"></i> Submitted Feedback Log
+            </h3>
+            <p class="card-description">Browse, filter, and review all received user responses</p>
+        </div>
+
+        <div class="table-actions">
+            <!-- Search Input -->
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input 
+                    type="text" 
+                    id="tableSearchInput" 
+                    placeholder="Search name, email, comments..." 
+                    class="form-input search-input"
+                    onkeyup="filterFeedbackTable()"
+                >
+            </div>
+
+            <!-- Rating Filter Dropdown -->
+            <select id="ratingFilterSelect" class="form-select" onchange="filterFeedbackTable()">
+                <option value="all">All Ratings (1 - 5)</option>
+                <option value="5">5 Stars only</option>
+                <option value="4">4 Stars only</option>
+                <option value="3">3 Stars only</option>
+                <option value="2">2 Stars only</option>
+                <option value="1">1 Star only</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Table Responsive Wrapper -->
+    <div class="table-responsive">
+        {% if feedback_list and feedback_list|length > 0 %}
+            <table class="data-table" id="feedbackDataTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#ID</th>
+                        <th style="min-width: 160px;">Name</th>
+                        <th style="min-width: 200px;">Email</th>
+                        <th style="min-width: 140px;">Rating</th>
+                        <th style="min-width: 280px;">Comments</th>
+                        <th style="min-width: 160px;">Date Submitted</th>
+                        <th style="width: 90px; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="feedbackTableBody">
+                    {% for item in feedback_list %}
+                        <tr class="table-row" data-rating="{{ item.rating }}">
+                            <td class="font-mono text-muted">#{{ item.id }}</td>
+                            <td class="font-semibold text-dark">
+                                <div class="user-cell">
+                                    <span class="user-avatar">{{ item.name[:1]|upper }}</span>
+                                    <span>{{ item.name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="mailto:{{ item.email }}" class="text-link">
+                                    <i class="fa-regular fa-envelope"></i> {{ item.email }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="rating-badge rating-badge-{{ item.rating }}">
+                                    <i class="fa-solid fa-star"></i> {{ item.rating }} / 5
+                                </span>
+                            </td>
+                            <td class="comments-cell">
+                                <p class="comment-text" title="{{ item.comments }}">{{ item.comments }}</p>
+                            </td>
+                            <td class="text-muted text-sm font-mono">
+                                <i class="fa-regular fa-calendar-days"></i> {{ item.date_submitted }}
+                            </td>
+                            <td style="text-align: center;">
+                                <form action="{{ url_for('delete_feedback', feedback_id=item.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete feedback entry #{{ item.id }}?');">
+                                    <button type="submit" class="btn-icon-danger" title="Delete this feedback entry">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div id="noResultsMessage" class="empty-state" style="display: none; padding: 40px 20px;">
+                <i class="fa-solid fa-filter-circle-xmark empty-icon"></i>
+                <p>No feedback entries match your search query or filter.</p>
+            </div>
+        {% else %}
+            <div class="empty-state" style="padding: 60px 20px;">
+                <div class="empty-icon-box">
+                    <i class="fa-solid fa-inbox empty-icon"></i>
+                </div>
+                <h3>No Feedback Entries Yet</h3>
+                <p class="text-muted">Your database is fresh and ready. When visitors submit the feedback form, their responses will instantly appear here.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin-top: 20px;">
+                    <i class="fa-solid fa-plus"></i> Submit First Feedback
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Table Footer with Summary Counter -->
+    {% if feedback_list and feedback_list|length > 0 %}
+        <div class="table-card-footer">
+            <span class="text-muted text-sm">
+                Showing <strong id="visibleCount">{{ feedback_list|length }}</strong> of <strong>{{ total_feedback }}</strong> entries
+            </span>
+            <a href="{{ url_for('export_csv') }}" class="btn-link">
+                <i class="fa-solid fa-download"></i> Download Full CSV
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    // Pass Python backend rating statistics to JavaScript safely
+    const ratingStatsData = {
+        1: {{ rating_counts.get(1, 0) }},
+        2: {{ rating_counts.get(2, 0) }},
+        3: {{ rating_counts.get(3, 0) }},
+        4: {{ rating_counts.get(4, 0) }},
+        5: {{ rating_counts.get(5, 0) }}
+    };
+
+    // Initialize Chart.js once DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof initRatingChart === 'function') {
+            initRatingChart(ratingStatsData);
+        }
+    });
+</script>
+{% endblock %}
