@@ -34,3 +34,13 @@ Open `http://127.0.0.1:5000/admin-login` and log in using your configured admin 
 - `static/` – CSS and JavaScript files
 - `database.db` – SQLite database
 - `requirements.txt` – Required Python packages
+## Project Screenshots
+
+### Feedback Form
+<img width="1920" height="1080" alt="FEEDBACK FORM" src="https://github.com/user-attachments/assets/b6436202-643c-4c08-9da4-5fea44556b74" />
+
+### Admin Login
+<img width="1920" height="1080" alt="ADMIN LOGIN" src="https://github.com/user-attachments/assets/2f8962eb-3c36-4ec0-b1ce-4767e5fb92a7" />
+
+### Admin Dashboard
+<img width="1920" height="1080" alt="DASHBOARD" src="https://github.com/user-attachments/assets/6ffa469d-a385-4188-af5c-b47e52eb58e7" />
